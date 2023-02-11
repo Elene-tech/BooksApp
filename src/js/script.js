@@ -74,16 +74,58 @@ function initActions() {
         e.target.offsetParent.classList.add('favorite');
         /* якщо натиснутий елемент містить його classList клас book__image (classList.contains ('book__image'), 
         то додаємо до натиснутого елементу 'favorite' */
-        const bookId = document.getElementsByName(dataSource.books.id);
+        //const bookId = document.getElementsByName(dataSource.books.id);
+        const bookId = listBookAndImage.dataset.id;
+        console.log('bookId', bookId);
         favoriteBooks.push(bookId); /* додаємо id в масив */
       }
       if (e.target.offsetParent.classList.contains('.active')) {
         /* перевіряємо, чи натиснутий елемент має клас active і якщо він є, то видаляємо з клікнутого елементу атрибут і клас favorite*/
-        const bookId = document.getElementsByName(dataSource.books.id);
+        //const bookId = document.getElementsByName(dataSource.books.id);
+        const bookId = listBookAndImage.dataset.id;
         favoriteBooks.removeAttribute(bookId);
         e.target.offsetParent.classList.remove('favorite');
       }
     });
+  }
+  const filters = [];
+  console.log('filters', filters);
+
+  const filtersForm = document.querySelector('.filters');
+  console.log('filtersForm', filtersForm);
+
+  filtersForm.addEventListener('click', function (event) {
+    if (event.target.checked) {
+      filters.push(event.target.value);
+      console.log(event.target.value);
+    } else {
+      filters.splice(event.target.value);
+    }
+    filterBooks();
+  });
+
+  //Task 4
+  function filterBooks() {
+    const books = selected;
+
+    for (let book of books) {
+      let shouldBeHidden = false;
+      const filterBook = document.querySelector(
+        '.book__image[data-id="' + book.id + '"]'
+      );
+
+      for (let filter of filters) {
+        if (!book.details[filter]) {
+          shouldBeHidden = true;
+          break;
+        }
+      }
+      if (shouldBeHidden) {
+        filterBook.classList.add('hidden');
+      } else {
+        filterBook.classList.remove('hidden');
+      }
+    }
   }
 }
 initActions();
