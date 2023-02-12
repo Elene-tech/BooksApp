@@ -16,6 +16,10 @@ const select = {
   filter: {
     filterForm: '.filters',
   },
+  rating: {
+    bookRating: 'book__rating',
+    bookRatingFill: 'book__rating__fill',
+  },
 };
 const templates = {
   books: Handlebars.compile(
@@ -25,6 +29,14 @@ const templates = {
 
 function renderInList() {
   for (const book of selected) {
+    const ratingBgc = determineRatingBgc(book.rating);
+    const ratingWidth = book.rating * 10;
+
+    book.ratingBgc = ratingBgc;
+    console.log('ratingBgc', ratingBgc);
+    book.ratingWidth = ratingWidth;
+    console.log('ratingWidth', ratingWidth);
+
     /* generate HTML based on template (генерувати HTML на основі шаблона)*/
     const generatedHTML = templates.books(book);
 
@@ -129,3 +141,17 @@ function initActions() {
   }
 }
 initActions();
+
+function determineRatingBgc(rating) {
+  let background = '';
+  if (rating < 6) {
+    background = 'linear-gradient(to bottom,  #fefcea 0%, #f1da36 100%)';
+  } else if (rating > 6 && rating <= 8) {
+    background = 'linear-gradient(to bottom, #b4df5b 0%,#b4df5b 100%)';
+  } else if (rating > 8 && rating <= 9) {
+    background = 'linear-gradient(to bottom, #299a0b 0%, #299a0b 100%)';
+  } else if (rating > 9) {
+    background = 'linear-gradient(to bottom, #ff0084 0%,#ff0084 100%)';
+  }
+  return background;
+}
