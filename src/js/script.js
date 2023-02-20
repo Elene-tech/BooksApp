@@ -1,5 +1,5 @@
 ('use strict');
-const selected = dataSource.books;
+//const selected = dataSource.books;
 
 const select = {
   templateOf: {
@@ -19,6 +19,10 @@ const select = {
     bookRating: 'book__rating',
     bookRatingFill: 'book__rating__fill',
   },
+  classNames: {
+    favoriteBook: 'favorite',
+    hiddenBook: 'hidden',
+  },
 };
 const templates = {
   books: Handlebars.compile(
@@ -32,18 +36,15 @@ class BooksList {
     thisBooksList.favoriteBooks = [];
     thisBooksList.filters = [];
 
-    //thisBooksList.getElements();
     thisBooksList.initData();
     thisBooksList.renderInList();
     thisBooksList.initActions();
-    thisBooksList.determineRatingBgc();
   }
   initData() {
     const thisBooksList = this;
-    thisBooksList.data = dataSource.books;
+    thisBooksList.data = dataSource.books; //отримуємо дані
   }
   determineRatingBgc(rating) {
-    const thisBooksList = this;
     let background = '';
     if (rating < 6) {
       background = 'linear-gradient(to bottom,  #fefcea 0%, #f1da36 100%)';
@@ -60,8 +61,8 @@ class BooksList {
     const thisBooksList = this;
 
     for (const book of thisBooksList.data) {
-      const ratingBgc = determineRatingBgc(book.rating);
-      const ratingWidth = book.rating * 10;
+      const ratingBgc = thisBooksList.determineRatingBgc(book.rating);
+      const ratingWidth = (book.rating / 10) * 100;
 
       book.ratingBgc = ratingBgc;
 
@@ -82,78 +83,45 @@ class BooksList {
     }
   }
   initActions() {
-    const thisBooksList = this;
-    /*Додайте функцію initActions*/
-    const listBooksAndImages = document.querySelectorAll(
-      select.image.imageWrapper
-    ); //Підготуйте референціі на список усіх елементів .book__image у .booksList.
-    console.log('listBooksAndImages', listBooksAndImages);
-
-    for (const listBookAndImage of listBooksAndImages) {
-      //Підготуйте референціі на список усіх елементів .book__image у .booksList.
-      listBookAndImage.addEventListener('dblclick', (e) => {
-        e.preventDefault();
-        listBookAndImage.classList.toggle('favorite');
-        if (!favoriteBooks.listBookAndImage) {
-          favoriteBooks.push(listBookAndImage);
-        }
-        if (favoriteBooks.listBookAndImage) {
-          favoriteBooks.remove(listBookAndImage);
-        }
-        //task 4
-        if (e.target.offsetParent.classList.contains('.book__image')) {
-          e.target.offsetParent.classList.add('favorite');
-          /* якщо натиснутий елемент містить його classList клас book__image (classList.contains ('book__image'), 
-        то додаємо до натиснутого елементу 'favorite' */
-          //const bookId = document.getElementsByName(dataSource.books.id);
-          const bookId = listBookAndImage.dataset.id;
-          console.log('bookId', bookId);
-          favoriteBooks.push(bookId); /* додаємо id в масив */
-        }
-        if (e.target.offsetParent.classList.contains('.active')) {
-          /* перевіряємо, чи натиснутий елемент має клас active і якщо він є, то видаляємо з клікнутого елементу атрибут і клас favorite*/
-          //const bookId = document.getElementsByName(dataSource.books.id);
-          const bookId = listBookAndImage.dataset.id;
-          favoriteBooks.removeAttribute(bookId);
-          e.target.offsetParent.classList.remove('favorite');
+    document
+      .querySelector(select.containerOf.container)
+      .addEventListener('dblclick', (event) => {
+        const bookImage = event.target.closest(select.image.bookImage);
+        if (bookImage) {
+          bookImage.classList.toggle(select.classNames.favoriteBook);
+          const bookId = bookImage.dataset.id;
+          if (!this.favoriteBooks.includes(bookId)) {
+            this.favoriteBooks.push(bookId);
+          } else {
+            this.favoriteBooks.splice(this.favoriteBooks.indexOf(bookId), 1);
+          }
         }
       });
-    }
-
-    const filtersForm = document.querySelector('.filters');
-    console.log('filtersForm', filtersForm);
-
-    filtersForm.addEventListener('click', function (event) {
-      if (event.target.checked) {
-        filters.push(event.target.value);
-        console.log(event.target.value);
-      } else {
-        filters.splice(event.target.value);
-      }
-      filterBooks();
-    });
+    document
+      .querySelector(select.containerOf.container)
+      .addEventListener('click', (event) => event.preventDefault());
+    document
+      .querySelector(select.filter.filterForm)
+      .addEventListener('input', (event) => this.filterBooks(event));
   }
 
-  filterBooks() {
-    const thisBooksList = this;
-    const books = selected;
+  filterBooks(event) {
+    if (event.target.checked && !this.filters.includes(event.target.value)) {
+      this.filters.push(event.target.value);
+    }
+    if (!event.target.checked && this.filters.includes(event.target.value)) {
+      this.filters.splice(this.filters.indexOf(event.target.value), 1);
+    }
 
-    for (let book of books) {
-      let shouldBeHidden = false;
-      const filterBook = document.querySelector(
-        '.book__image[data-id="' + book.id + '"]'
+    for (const book of dataSource.books) {
+      const isFiltered = this.filters.every((filter) => book.details[filter]);
+      const bookEl = document.querySelector(
+        `${select.image.bookImage}[data-id="${book.id}"]`
       );
-
-      for (let filter of filters) {
-        if (!book.details[filter]) {
-          shouldBeHidden = true;
-          break;
-        }
-      }
-      if (shouldBeHidden) {
-        filterBook.classList.add('hidden');
+      if (isFiltered) {
+        bookEl.classList.remove(select.classNames.hiddenBook);
       } else {
-        filterBook.classList.remove('hidden');
+        bookEl.classList.add(select.classNames.hiddenBook);
       }
     }
   }
